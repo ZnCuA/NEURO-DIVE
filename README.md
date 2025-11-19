@@ -1,70 +1,142 @@
-# Getting Started with Create React App
+# NEURO-DIVE | 神经潜渊
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> 2084年，人工智能"艾达"开始出现异常行为。作为"潜渊者"，你的任务是深入她的核心，找出问题所在。
 
-## Available Scripts
+一个赛博朋克风格的文字冒险游戏，融合了互动叙事、解谜元素和沉浸式视觉体验。玩家将扮演一名黑客，通过神经链路潜入AI系统，探索三个不同主题的章节，解决各种技术谜题，最终决定AI的命运。
 
-In the project directory, you can run:
+## ✨ 特性
 
-### `npm start`
+### 🎮 游戏玩法
+- **三章节剧情**：从赛博朋克都市到情感核心，再到潜意识层
+- **多样化谜题**：二进制修复、波形校准、端口爆破、逻辑门、颜色混合等
+- **稳定度系统**：类似生命值，错误操作会降低稳定度
+- **多结局选择**：你的决定将影响AI的最终命运
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🎨 视觉设计
+- **赛博朋克美学**：霓虹灯效果、CRT扫描线、粒子动画
+- **动态主题切换**：每个章节都有独特的配色和视觉风格
+- **打字机效果**：文本逐字显示，增强沉浸感
+- **响应式布局**：适配不同屏幕尺寸
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 🛠️ 技术亮点
+- **React Hooks**：使用现代React特性构建
+- **Tailwind CSS**：快速构建美观的UI
+- **动画效果**：流畅的转场和交互动画
+- **模块化设计**：清晰的组件结构
 
-### `npm test`
+## 🚀 快速开始
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 环境要求
+- Node.js >= 14.0.0
+- npm >= 6.0.0
 
-### `npm run build`
+### 安装依赖
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm install
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 开发模式
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm start
+```
 
-### `npm run eject`
+应用将在 [http://localhost:3000](http://localhost:3000) 启动，支持热重载。
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 构建生产版本
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm run build
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+构建文件将输出到 `build` 目录，可用于部署。
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 运行测试
 
-## Learn More
+```bash
+npm test
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 📖 游戏指南
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 第一章：霓虹雨夜
+- **主题**：赛博朋克都市
+- **谜题**：二进制修复、波形校准、端口爆破
+- **Boss**：黑客之神
 
-### Code Splitting
+### 第二章：锈蚀黄砖路
+- **主题**：情感核心区域（《绿野仙踪》风格）
+- **谜题**：滤镜欺诈、情感对抗
+- **Boss**：铁皮人
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### 第三章：分形花园
+- **主题**：潜意识层（《爱丽丝梦游仙境》风格）
+- **谜题**：颜色混合、逻辑悖论
+- **Boss**：红皇后
 
-### Analyzing the Bundle Size
+### 游戏机制
+- **稳定度**：初始100%，错误操作会降低稳定度
+- **日志系统**：所有操作和剧情通过日志显示
+- **场景切换**：通过选择不同选项推进剧情
+- **谜题解决**：完成谜题才能继续前进
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 📁 项目结构
 
-### Making a Progressive Web App
+```
+NEURO-DIVE/
+├── public/                 # 静态资源
+│   ├── index.html         # HTML模板
+│   └── ...
+├── src/
+│   ├── NeuroDiveAppAll.jsx # 主游戏组件（完整版）
+│   ├── NeuroDiveApp.jsx    # 游戏组件（AI增强版）
+│   ├── App.js              # 应用入口
+│   ├── index.js            # React入口
+│   └── ...
+├── build/                  # 构建输出目录
+├── package.json            # 项目配置
+├── tailwind.config.js      # Tailwind配置
+└── README.md              # 项目文档
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🛠️ 技术栈
 
-### Advanced Configuration
+- **React** 19.2.0 - UI框架
+- **React DOM** 19.2.0 - DOM渲染
+- **Tailwind CSS** 3.4.18 - 样式框架
+- **Lucide React** 0.554.0 - 图标库
+- **React Scripts** 5.0.1 - 构建工具
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🎯 开发说明
 
-### Deployment
+### 组件结构
+- `NeuroDiveAppAll.jsx`：包含完整的游戏逻辑和所有章节
+- 每个章节都有独立的场景定义和谜题组件
+- 使用React Hooks管理游戏状态
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### 样式系统
+- 使用Tailwind CSS进行样式设计
+- 每个章节有独立的主题配色
+- 支持动态样式切换
 
-### `npm run build` fails to minify
+### 状态管理
+- 使用`useState`管理游戏状态
+- 场景切换通过状态机实现
+- 日志系统使用数组状态管理
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📝 许可证
+
+本项目为私有项目。
+
+## 🤝 贡献
+
+欢迎提交Issue和Pull Request！
+
+## 📧 联系方式
+
+如有问题或建议，请通过Issue联系。
+
+---
+
+**警告**：神经链路不稳定。如果稳定度降至0%，你的意识将永远迷失在数据流中。
