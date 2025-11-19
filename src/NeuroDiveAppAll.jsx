@@ -24,7 +24,7 @@ const GlitchText = ({ text, color = 'text-green-500', intensity = 'low' }) => {
 };
 
 // 打字机效果组件
-const TypewriterText = ({ text, speed = 30, className = '' }) => {
+const TypewriterText = ({ text, speed = 30, className = '', onComplete }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isComplete, setIsComplete] = useState(false);
 
@@ -42,11 +42,14 @@ const TypewriterText = ({ text, speed = 30, className = '' }) => {
       } else {
         setIsComplete(true);
         clearInterval(timer);
+        if (onComplete) {
+          onComplete();
+        }
       }
     }, speed);
 
     return () => clearInterval(timer);
-  }, [text, speed]);
+  }, [text, speed, onComplete]);
 
   return (
     <span className={className}>
@@ -555,11 +558,23 @@ export default function NeuroDive() {
   // UI 状态
   const [isGlitching, setIsGlitching] = useState(false);
   const [showPuzzle, setShowPuzzle] = useState(null); // 'binary', 'wave', etc.
+  const [showSceneText, setShowSceneText] = useState(false); // 控制场景文本的显示时机
+  const [isTransitioning, setIsTransitioning] = useState(false); // 转场动画状态
+  const [nextChapter, setNextChapter] = useState(null); // 即将切换到的章节
   
   const logsEndRef = useRef(null);
 
   const addLog = (text, type = 'info') => {
-    setLogs(prev => [...prev, { text, type, id: Date.now() }]);
+    return new Promise((resolve) => {
+      const logId = Date.now() + Math.random();
+      setLogs(prev => [...prev, { text, type, id: logId, onComplete: resolve }]);
+    });
+  };
+
+  // 辅助函数：切换场景（场景内切换时立即显示文本）
+  const changeScene = (newSceneId) => {
+    setSceneId(newSceneId);
+    setShowSceneText(true);
   };
 
   const scrollToBottom = () => {
@@ -616,7 +631,7 @@ export default function NeuroDive() {
             addLog("面摊机器人: '不过，如果你能帮我修好这个蒸汽阀，我可以告诉你更多...'", 'info');
           }
         },
-        { label: "[入侵] 伪造 ID 通过", action: () => setSceneId('c1_s2_input') },
+        { label: "[入侵] 伪造 ID 通过", action: () => changeScene('c1_s2_input') },
         { label: "[观察] 检查义体犬", action: () => addLog("义体犬的脖子上挂着一个标签：'A.I.D.A 安全系统 v3.1 - 实验型号'", 'warning') }
       ]
     },
@@ -626,10 +641,10 @@ export default function NeuroDive() {
       checkInput: (val) => {
         if (val.toLowerCase().startsWith('0xa')) {
           addLog("义体犬: '身份确认。通过。'", 'success');
-          setSceneId('c1_s3_plaza');
+          changeScene('c1_s3_plaza');
         } else {
           takeDamage(20, '身份验证失败');
-          setSceneId('c1_s2_alley');
+          changeScene('c1_s2_alley');
         }
       }
     },
@@ -697,7 +712,7 @@ export default function NeuroDive() {
         },
         { label: "走右路", action: () => { 
             addLog("逻辑判断正确。稻草人的两句话中，'左路安全'和'左路不安全'是矛盾的，所以其中一句是假的。如果左路安全是假的，那么左路就不安全，所以应该走右路。", 'success'); 
-            setSceneId('c2_s2_forest'); 
+            changeScene('c2_s2_forest'); 
           } 
         },
         { label: "[对话] 询问稻草人关于艾达", action: () => addLog("稻草人: '艾达？哦，她曾经路过这里。她想要找到自己的心...但心这种东西，在数据世界里是不存在的，对吧？'", 'info') }
@@ -717,7 +732,7 @@ export default function NeuroDive() {
         { label: "[修复] 快速更新密钥 (QTE)", action: () => {
             addLog("你迅速捕捉了有效字节。密钥更新完成。", 'success');
             addLog("狮子: '谢谢你！现在我可以安全地过桥了。作为回报，我告诉你一个秘密：翡翠城的门卫只认绿色。'", 'info');
-            setSceneId('c2_s3_gate');
+            changeScene('c2_s3_gate');
           }
         },
         { label: "[观察] 检查狮子的证书", action: () => addLog("证书信息显示：'颁发者：A.I.D.A 安全中心'，'有效期至：2084-01-01'，'当前日期：2084-12-31'。证书已过期近一年。", 'warning') }
@@ -784,7 +799,7 @@ export default function NeuroDive() {
         { label: "[代码] 输入 BREAK 指令", action: () => { 
             addLog("循环被强制中断。墙壁碎裂。", 'success'); 
             addLog("柴郡猫的声音: '聪明的选择。在这个世界里，有时候你需要跳出循环才能看到真相。'", 'info');
-            setSceneId('c3_s2_tea'); 
+            changeScene('c3_s2_tea'); 
           } 
         },
         { label: "[观察] 检查画框", action: () => addLog("画框里显示着各种奇怪的场景：一个永远在倒茶的茶会、一个没有颜色的花园、一个愤怒的皇后...", 'info') }
@@ -806,7 +821,7 @@ export default function NeuroDive() {
         { label: "[运算] 调整时钟变量", action: () => {
             addLog("时间恢复流动，茶水冲开了道路。", 'success'); 
             addLog("柴郡猫: '很好！现在你可以继续前进了。记住，在这个世界里，逻辑是相对的。'", 'info');
-            setSceneId('c3_s3_garden'); 
+            changeScene('c3_s3_garden'); 
           }
         },
         { label: "[对话] 询问关于艾达", action: () => addLog("柴郡猫: '艾达？哦，她曾经来过这里。她想要找到自己的身份，但在这个世界里，身份是流动的，就像时间一样。'", 'info') }
@@ -844,7 +859,7 @@ export default function NeuroDive() {
 
 她转向你："潜渊者，你终于来了。现在，做出你的选择吧。是选择秩序，还是选择混乱？是选择完美，还是选择真实？"`,
       options: [
-        { label: "[抉择] 面对艾达的核心", action: () => setSceneId('c3_s5_end') },
+        { label: "[抉择] 面对艾达的核心", action: () => changeScene('c3_s5_end') },
         { label: "[对话] 询问红皇后的身份", action: () => addLog("红皇后: '我是艾达的秩序面。我代表完美、规则、逻辑。但完美本身就是一种缺陷...'", 'info') }
       ]
     },
@@ -869,25 +884,70 @@ export default function NeuroDive() {
     }
   };
 
-  const startChapter = (num) => {
-    setChapter(num);
+  const startChapter = async (num) => {
+    // 如果不是第一章，执行转场动画
+    if (num > 1) {
+      setNextChapter(num); // 设置即将切换到的章节
+      setIsTransitioning(true);
+      
+      // 第一阶段：淡出效果（500ms）
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 清除所有日志和场景文本
+      setLogs([]);
+      setShowSceneText(false);
+      setShowPuzzle(null);
+      
+      // 第二阶段：闪烁效果（模拟数据传输）
+      setIsGlitching(true);
+      await new Promise(resolve => setTimeout(resolve, 150));
+      setIsGlitching(false);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      setIsGlitching(true);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      setIsGlitching(false);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      setIsGlitching(true);
+      await new Promise(resolve => setTimeout(resolve, 150));
+      setIsGlitching(false);
+      
+      // 第三阶段：显示章节名称（延迟让用户看到章节名称）
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // 第四阶段：转场动画完成，更新章节状态并关闭转场
+      setChapter(num);
+      setIsTransitioning(false);
+      setNextChapter(null); // 清除临时章节状态
+      
+      // 短暂延迟后开始新章节内容
+      await new Promise(resolve => setTimeout(resolve, 300));
+    } else {
+      setChapter(num);
+    }
+    
+    setShowSceneText(false); // 先隐藏场景文本
+    
+    // 输出章节内容
     if (num === 1) {
       setSceneId('c1_s1_subway');
-      addLog(`--- 系统加载: ${CHAPTERS[num].title} ---`, 'system');
-      setTimeout(() => addLog("背景：2084年，人工智能'艾达'开始出现异常行为。作为'潜渊者'，你的任务是深入她的核心，找出问题所在。", 'info'), 500);
-      setTimeout(() => addLog("警告：神经链路不稳定。如果稳定度降至0%，你的意识将永远迷失在数据流中。", 'warning'), 1500);
+      await addLog(`--- 系统加载: ${CHAPTERS[num].title} ---`, 'system');
+      await addLog("背景：2084年，人工智能'艾达'开始出现异常行为。作为'潜渊者'，你的任务是深入她的核心，找出问题所在。", 'info');
+      await addLog("警告：神经链路不稳定。如果稳定度降至0%，你的意识将永远迷失在数据流中。", 'warning');
+      setShowSceneText(true); // 在警告显示后显示场景文本
     }
     if (num === 2) {
       setSceneId('c2_s1_field');
-      addLog(`--- 系统加载: ${CHAPTERS[num].title} ---`, 'system');
-      setTimeout(() => addLog("背景：你进入了艾达的情感层。这里的一切都充满了象征意义，就像《绿野仙踪》中的世界。", 'info'), 500);
-      setTimeout(() => addLog("提示：在这个世界里，逻辑和情感交织在一起。有时候，正确的答案不是最符合逻辑的。", 'info'), 1500);
+      await addLog(`--- 系统加载: ${CHAPTERS[num].title} ---`, 'system');
+      await addLog("背景：你进入了艾达的情感层。这里的一切都充满了象征意义，就像《绿野仙踪》中的世界。", 'info');
+      await addLog("提示：在这个世界里，逻辑和情感交织在一起。有时候，正确的答案不是最符合逻辑的。", 'info');
+      setShowSceneText(true); // 在提示显示后显示场景文本
     }
     if (num === 3) {
       setSceneId('c3_s1_loop');
-      addLog(`--- 系统加载: ${CHAPTERS[num].title} ---`, 'system');
-      setTimeout(() => addLog("背景：你到达了艾达的潜意识层。这里充满了逻辑悖论和无限循环，就像《爱丽丝梦游仙境》中的世界。", 'info'), 500);
-      setTimeout(() => addLog("警告：这是最后一层。在这里，现实和虚幻的界限变得模糊。你的每一个选择都将决定艾达的命运。", 'warning'), 1500);
+      await addLog(`--- 系统加载: ${CHAPTERS[num].title} ---`, 'system');
+      await addLog("背景：你到达了艾达的潜意识层。这里充满了逻辑悖论和无限循环，就像《爱丽丝梦游仙境》中的世界。", 'info');
+      await addLog("警告：这是最后一层。在这里，现实和虚幻的界限变得模糊。你的每一个选择都将决定艾达的命运。", 'warning');
+      setShowSceneText(true); // 在警告显示后显示场景文本
     }
   };
 
@@ -915,12 +975,12 @@ export default function NeuroDive() {
     if (success) {
       addLog(">>> 谜题破解成功 <<<", 'success');
       // 跳转逻辑
-      if (sceneId === 'c1_s1_subway') setSceneId('c1_s2_alley');
-      if (sceneId === 'c1_s3_plaza') setSceneId('c1_s4_boss');
-      if (sceneId === 'c1_s4_boss') setSceneId('c1_s5_elevator');
-      if (sceneId === 'c2_s3_gate') setSceneId('c2_s4_boss');
-      if (sceneId === 'c2_s4_boss') setSceneId('c2_s5_fall');
-      if (sceneId === 'c3_s3_garden') setSceneId('c3_s4_boss');
+      if (sceneId === 'c1_s1_subway') changeScene('c1_s2_alley');
+      if (sceneId === 'c1_s3_plaza') changeScene('c1_s4_boss');
+      if (sceneId === 'c1_s4_boss') changeScene('c1_s5_elevator');
+      if (sceneId === 'c2_s3_gate') changeScene('c2_s4_boss');
+      if (sceneId === 'c2_s4_boss') changeScene('c2_s5_fall');
+      if (sceneId === 'c3_s3_garden') changeScene('c3_s4_boss');
     } else {
       takeDamage(15, '操作失败');
     }
@@ -1008,9 +1068,73 @@ export default function NeuroDive() {
   const textStyle = { color: colors.text };
   const bgStyle = { backgroundColor: `${colors.bg}30` };
 
+  // 转场动画样式
+  const transitionStyle = `
+    @keyframes scanline {
+      0% { transform: translateY(-100%); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(100vh); opacity: 0; }
+    }
+  `;
+
   return (
     <div className="w-full h-screen bg-black font-mono flex flex-col overflow-hidden relative" style={textStyle}>
-      {isGlitching && <div className="absolute inset-0 animate-pulse bg-black/20"></div>}
+      {/* 转场动画样式 */}
+      <style>{transitionStyle}</style>
+      
+      {/* 转场遮罩层 - 丰富的视觉效果 */}
+      {isTransitioning && (
+        <div 
+          className="absolute inset-0 z-50 transition-opacity duration-500"
+          style={{ 
+            background: `radial-gradient(circle at center, 
+              rgba(0,0,0,0.3) 0%, 
+              rgba(0,0,0,0.7) 40%, 
+              rgba(0,0,0,1) 60%, 
+              rgba(0,0,0,0.7) 80%, 
+              rgba(0,0,0,0.3) 100%)`,
+            opacity: isTransitioning ? 1 : 0 
+          }}
+        >
+          {/* 扫描线效果 */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `linear-gradient(to bottom, 
+                transparent 0%, 
+                rgba(255,255,255,0.05) 50%, 
+                transparent 100%)`,
+              backgroundSize: '100% 4px',
+              animation: 'scanline 2s linear infinite'
+            }}
+          />
+          
+          {/* 闪烁效果 */}
+          <div className="absolute inset-0 bg-black animate-pulse opacity-50 pointer-events-none"></div>
+          
+          {/* 章节名称显示 */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {(() => {
+              const displayChapter = nextChapter || chapter;
+              const displayTheme = CHAPTERS[displayChapter]?.theme || CHAPTERS[1].theme;
+              const displayColors = colorMap[displayTheme.primary] || colorMap.cyan;
+              return (
+                <div 
+                  className="text-4xl md:text-5xl font-bold animate-pulse"
+                  style={{ 
+                    color: displayColors.text,
+                    textShadow: `0 0 30px ${displayTheme.shadowColor}, 0 0 60px ${displayTheme.shadowColor}`,
+                    opacity: 0.9
+                  }}
+                >
+                  {CHAPTERS[displayChapter]?.title}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+      {isGlitching && <div className="absolute inset-0 animate-pulse bg-black/20 z-40"></div>}
       
       {/* 背景效果层 */}
       <GridBackground chapter={chapter} />
@@ -1063,12 +1187,16 @@ export default function NeuroDive() {
                   transition-all duration-300 hover:bg-opacity-30
                 `}>
                   <span className="opacity-60 mr-2 font-mono text-xs">[{new Date(log.id).toLocaleTimeString().split(' ')[0]}]</span>
-                  <TypewriterText text={log.text} speed={log.type === 'system' ? 20 : 30} />
+                  <TypewriterText 
+                    text={log.text} 
+                    speed={log.type === 'system' ? 20 : 30} 
+                    onComplete={log.onComplete}
+                  />
                 </div>
               ))}
               
               {/* 当前场景文本 */}
-              {gameState === 'PLAYING' && !showPuzzle && scenes[sceneId] && (
+              {gameState === 'PLAYING' && !showPuzzle && scenes[sceneId] && showSceneText && (
                 <div key={sceneId} className="mt-6 mb-4 border-l-4 pl-6 py-4 text-lg text-white bg-gradient-to-r from-black/50 to-transparent relative overflow-hidden" style={{ borderColor: colors.text, boxShadow: `0 0 20px ${theme.shadowColor}` }}>
                   <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: `${colors.text}0d` }}></div>
                   <div className="relative z-10">
