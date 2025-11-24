@@ -1,0 +1,51 @@
+{
+  "id": "c1_s2_input",
+  "chapter": 1,
+  "metadata": {
+    "title": "握手验证",
+    "mood": "tense",
+    "timeOfDay": "night"
+  },
+  "background": {
+    "type": "image",
+    "image": "/assets/scenes/alley.png",
+    "overlay": {
+      "type": "scanlines",
+      "intensity": 0.3
+    },
+    "effects": [
+      {
+        "type": "glitch",
+        "frequency": "low"
+      }
+    ]
+  },
+  "characters": [],
+  "dialogue": {
+    "system": {
+      "text": "[系统日志 #002-A] 握手验证中",
+      "type": "system"
+    },
+    "narrator": {
+      "text": "义体犬的红色LED盯着你。它等待你输入握手协议ID（格式：0x....）。背景的霓虹雨光在空气中折射，你能感到数据流的紧张脉动。",
+      "typingSpeed": 30
+    }
+  },
+  "ui": {
+    "hud": {
+      "stability": 100,
+      "chapter": 1,
+      "show": true
+    }
+  },
+  "camera": {
+    "effect": "none",
+    "shake": false,
+    "zoom": 1.0
+  },
+  "transitions": {
+    "in": "fade",
+    "out": "fade",
+    "duration": 800
+  }
+}
