@@ -8,7 +8,7 @@ export default function ChoiceModal({ choices = [], title, onSelect, onClose }) 
     if (onSelect) {
       onSelect(choice);
     }
-    if (onClose) {
+    if (onClose && choice?.closeOnSelect !== false) {
       onClose();
     }
   };
@@ -62,4 +62,3 @@ export default function ChoiceModal({ choices = [], title, onSelect, onClose }) 
     </div>
   );
 }
-

@@ -123,20 +123,15 @@ export default function SceneEngine({ sceneData, onChoiceSelect, stability, chap
           />
         )}
         
-        {/* 角色对话完成后的继续按钮 - 当有角色对话气泡时显示（只在没有普通对话且没有显示选项弹窗时显示） */}
-        {!currentDialogue && !showChoices && Object.keys(characterSpeech).length > 0 && (
+        {/* 角色对话进行时的继续按钮 - 角色气泡出现后允许继续/查看选项 */}
+        {!showChoices && Object.keys(characterSpeech).length > 0 && (
           <div className="fixed bottom-0 left-0 right-0 z-40 p-4 md:p-6">
             <div className="max-w-5xl mx-auto flex justify-end">
               <button
                 onClick={() => {
-                  // 清除所有角色对话气泡
                   setCharacterSpeech({});
-                  // 如果有下一句对话，继续
-                  if (hasNext) {
-                    nextDialogue();
-                  } else if (currentScene.ui?.choices) {
-                    setShowChoices(true);
-                  }
+                  nextDialogue();
+                  if (!hasNext && currentScene.ui?.choices) setShowChoices(true);
                 }}
                 className="px-6 py-2 border-2 border-cyan-500 bg-black/90 hover:bg-cyan-500 hover:text-black transition-all font-bold text-sm font-mono shadow-[0_0_20px_rgba(0,255,255,0.5)] hover:shadow-[0_0_30px_rgba(0,255,255,0.8)] animate-pulse"
               >
@@ -180,6 +175,18 @@ export default function SceneEngine({ sceneData, onChoiceSelect, stability, chap
                     setCharacterSpeech({ [dogChar.id]: "身份验证中... 请提供握手协议ID。" });
                   }, 500);
                 }
+              } else if (choice.id === 'talk') {
+                const bossChar = currentScene.characters?.find(char => char.id === 'hacker_boss');
+                if (bossChar) {
+                  newVisibility[bossChar.id] = true;
+                  setVisibleCharacters(newVisibility);
+                  setCharacterSpeech({});
+                  setTimeout(() => {
+                    setCharacterSpeech({ 
+                      [bossChar.id]: "艾达切除了自己的情感、恐惧和矛盾，把它们标记为异常值。我们就是那些被放逐的碎片。" 
+                    });
+                  }, 300);
+                }
               } else {
                 // 其他选择也隐藏所有角色
                 setVisibleCharacters(newVisibility);
@@ -204,4 +211,3 @@ export default function SceneEngine({ sceneData, onChoiceSelect, stability, chap
     </div>
   );
 }
-
