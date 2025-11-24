@@ -1,0 +1,71 @@
+{
+  "id": "c1_s1_subway",
+  "chapter": 1,
+  "metadata": {
+    "title": "废弃地铁站",
+    "mood": "tense",
+    "timeOfDay": "night"
+  },
+  "background": {
+    "type": "image",
+    "image": "/assets/scenes/subway_station.png",
+    "overlay": {
+      "type": "scanlines",
+      "intensity": 0.3
+    },
+    "effects": [
+      {
+        "type": "fog",
+        "color": "rgba(0, 255, 255, 0.1)",
+        "speed": "slow"
+      },
+      {
+        "type": "glitch",
+        "frequency": "low"
+      }
+    ]
+  },
+  "characters": [],
+  "dialogue": {
+    "system": {
+      "text": "[系统日志 #001] 神经链路已建立。意识传输完成率：87.3%",
+      "type": "system"
+    },
+    "narrator": {
+      "text": "你缓缓睁开眼睛，发现自己站在一个废弃的地铁站台。头顶的霓虹灯管闪烁着不规律的青色光芒，在潮湿的空气中投下扭曲的阴影。墙壁上爬满了数据流形成的苔藓，它们像活物一样缓慢蠕动。",
+      "typingSpeed": 30
+    }
+  },
+  "ui": {
+    "hud": {
+      "stability": 100,
+      "chapter": 1,
+      "show": true
+    },
+    "choices": [
+      {
+        "id": "scan",
+        "text": "[扫描] 查看闸机电路",
+        "icon": "scan",
+        "action": "puzzle_binary"
+      },
+      {
+        "id": "observe",
+        "text": "[观察] 检查周围环境",
+        "icon": "eye",
+        "action": "log_info"
+      }
+    ]
+  },
+  "camera": {
+    "effect": "fadeIn",
+    "shake": false,
+    "zoom": 1.0
+  },
+  "transitions": {
+    "in": "fade",
+    "out": "fade",
+    "duration": 1000
+  }
+}
+

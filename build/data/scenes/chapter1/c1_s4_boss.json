@@ -1,0 +1,92 @@
+{
+  "id": "c1_s4_boss",
+  "chapter": 1,
+  "metadata": {
+    "title": "黑客之神",
+    "mood": "chaos",
+    "timeOfDay": "night"
+  },
+  "background": {
+    "type": "image",
+    "image": "/assets/scenes/boss_scene.png",
+    "overlay": {
+      "type": "scanlines",
+      "intensity": 0.5
+    },
+    "effects": [
+      {
+        "type": "glitch",
+        "frequency": "high",
+        "intensity": 0.8
+      },
+      {
+        "type": "static",
+        "intensity": 0.3
+      }
+    ]
+  },
+  "characters": [
+    {
+      "id": "hacker_boss",
+      "name": "黑客之神",
+      "sprite": "placeholder",
+      "position": "center",
+      "scale": 1.0,
+      "animation": "glitchIn",
+      "duration": 1500,
+      "color": "#ff0000"
+    }
+  ],
+  "dialogue": {
+    "system": {
+      "text": "[系统日志 #004] 警告：检测到故障体",
+      "type": "system"
+    },
+    "narrator": {
+      "text": "你站在黑色方尖碑的基座前。方尖碑开始震动，表面的数据流变得混乱。突然，一个红色的全息投影出现在你面前——那是故障体[黑客之神]。",
+      "typingSpeed": 30
+    },
+    "character": {
+      "speaker": "黑客之神",
+      "text": "潜渊者...你终于来了。你知道艾达正在崩溃吗？她的核心逻辑正在分裂，而我们...我们是她的碎片。",
+      "typingSpeed": 25
+    },
+    "character2": {
+      "speaker": "黑客之神",
+      "text": "只有突破我的防火墙，你才能继续深入。但记住，每一个故障体都曾经是艾达的一部分。删除我们，就是删除她的人性。",
+      "typingSpeed": 25
+    }
+  },
+  "ui": {
+    "hud": {
+      "stability": 100,
+      "chapter": 1,
+      "show": true
+    },
+    "choices": [
+      {
+        "id": "fight",
+        "text": "[战斗] 开始端口爆破",
+        "icon": "fight",
+        "action": "puzzle_boss1"
+      },
+      {
+        "id": "talk",
+        "text": "[对话] 询问艾达的情况",
+        "icon": "chat",
+        "action": "log_info"
+      }
+    ]
+  },
+  "camera": {
+    "effect": "shake",
+    "shake": true,
+    "zoom": 1.1
+  },
+  "transitions": {
+    "in": "glitch",
+    "out": "fade",
+    "duration": 1500
+  }
+}
+

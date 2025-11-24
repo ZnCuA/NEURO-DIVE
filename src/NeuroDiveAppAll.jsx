@@ -1,27 +1,29 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Terminal, Zap, Shield, Cpu, Activity, Lock, Eye, Heart, Skull, Play, RotateCcw, Key, Radio } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Terminal, Shield, Activity, Skull, Play, RotateCcw } from 'lucide-react';
+import SceneEngine from './components/SceneEngine/SceneEngine';
+import { loadScene } from './utils/sceneLoader';
 
 // --- 样式常量 & 工具 ---
-const COLORS = {
-  neonGreen: '#0f0',
-  neonRed: '#f00',
-  neonBlue: '#0ff',
-  neonYellow: '#ff0',
-  neonPink: '#f0f',
-  darkBg: '#050505',
-  terminalGreen: 'text-green-500',
-  terminalRed: 'text-red-500',
-  terminalBlue: 'text-cyan-400',
-  terminalYellow: 'text-yellow-400',
-};
+// const COLORS = {
+//   neonGreen: '#0f0',
+//   neonRed: '#f00',
+//   neonBlue: '#0ff',
+//   neonYellow: '#ff0',
+//   neonPink: '#f0f',
+//   darkBg: '#050505',
+//   terminalGreen: 'text-green-500',
+//   terminalRed: 'text-red-500',
+//   terminalBlue: 'text-cyan-400',
+//   terminalYellow: 'text-yellow-400',
+// };
 
-const GlitchText = ({ text, color = 'text-green-500', intensity = 'low' }) => {
-  return (
-    <span className={`${color} relative inline-block font-mono animate-pulse`}>
-      {text}
-    </span>
-  );
-};
+// const GlitchText = ({ text, color = 'text-green-500', intensity = 'low' }) => {
+//   return (
+//     <span className={`${color} relative inline-block font-mono animate-pulse`}>
+//       {text}
+//     </span>
+//   );
+// };
 
 // 打字机效果组件
 const TypewriterText = ({ text, speed = 30, className = '', onComplete }) => {
@@ -88,21 +90,21 @@ const GridBackground = ({ chapter = 1 }) => {
 };
 
 // 霓虹灯边框组件
-const NeonBorder = ({ children, color = 'green' }) => {
-  const colorMap = {
-    green: 'border-green-500 shadow-[0_0_10px_rgba(0,255,0,0.5)]',
-    cyan: 'border-cyan-500 shadow-[0_0_10px_rgba(0,255,255,0.5)]',
-    red: 'border-red-500 shadow-[0_0_10px_rgba(255,0,0,0.5)]',
-    yellow: 'border-yellow-500 shadow-[0_0_10px_rgba(255,255,0,0.5)]',
-  };
-  
-  return (
-    <div className={`border-2 ${colorMap[color]} relative`}>
-      <div className={`absolute inset-0 ${colorMap[color]} opacity-50 animate-pulse`}></div>
-      {children}
-    </div>
-  );
-};
+// const NeonBorder = ({ children, color = 'green' }) => {
+//   const colorMap = {
+//     green: 'border-green-500 shadow-[0_0_10px_rgba(0,255,0,0.5)]',
+//     cyan: 'border-cyan-500 shadow-[0_0_10px_rgba(0,255,255,0.5)]',
+//     red: 'border-red-500 shadow-[0_0_10px_rgba(255,0,0,0.5)]',
+//     yellow: 'border-yellow-500 shadow-[0_0_10px_rgba(255,255,0,0.5)]',
+//   };
+//   
+//   return (
+//     <div className={`border-2 ${colorMap[color]} relative`}>
+//       <div className={`absolute inset-0 ${colorMap[color]} opacity-50 animate-pulse`}></div>
+//       {children}
+//     </div>
+//   );
+// };
 
 // 粒子效果组件 - 根据章节主题变化
 const ParticleEffect = ({ chapter = 1 }) => {
@@ -553,7 +555,7 @@ export default function NeuroDive() {
   const [sceneId, setSceneId] = useState('c1_s1_subway');
   const [logs, setLogs] = useState([]);
   const [stability, setStability] = useState(100);
-  const [inventory, setInventory] = useState([]);
+  // const [inventory, setInventory] = useState([]); // 暂未使用
   
   // UI 状态
   const [isGlitching, setIsGlitching] = useState(false);
@@ -561,6 +563,9 @@ export default function NeuroDive() {
   const [showSceneText, setShowSceneText] = useState(false); // 控制场景文本的显示时机
   const [isTransitioning, setIsTransitioning] = useState(false); // 转场动画状态
   const [nextChapter, setNextChapter] = useState(null); // 即将切换到的章节
+  
+  // 视觉场景状态
+  const [visualSceneData, setVisualSceneData] = useState(null);
   
   const logsEndRef = useRef(null);
 
@@ -573,9 +578,73 @@ export default function NeuroDive() {
 
   // 辅助函数：切换场景（场景内切换时立即显示文本）
   const changeScene = (newSceneId) => {
+    setVisualSceneData(null); // 先清空
     setSceneId(newSceneId);
-    setShowSceneText(true);
+    setShowSceneText(false);
   };
+  
+  // 处理视觉场景的选项选择
+  const handleVisualChoice = (choice) => {
+    if (!choice.action) return;
+    
+    // 根据action类型执行相应操作
+    if (choice.action.startsWith('puzzle_')) {
+      const puzzleType = choice.action.replace('puzzle_', '');
+      setShowPuzzle(puzzleType);
+      setVisualSceneData(null); // 隐藏视觉场景，显示谜题
+    } else if (choice.action === 'log_info') {
+      // 这里可以根据choice.id执行不同的日志操作
+      if (choice.id === 'observe') {
+        addLog("你注意到墙壁上刻着一些奇怪的符号：'A.I.D.A 核心协议 v2.0 - 禁止未授权访问'", 'info');
+      } else if (choice.id === 'observe_dog') {
+        addLog("义体犬的脖子上挂着一个标签：'A.I.D.A 安全系统 v3.1 - 实验型号'", 'warning');
+      } else if (choice.id === 'talk_noodle') {
+        addLog("面摊机器人: '最近合法的ID好像都是 0xA 开头的...别告诉别人。'", 'info');
+        addLog("面摊机器人: '不过，如果你能帮我修好这个蒸汽阀，我可以告诉你更多...'", 'info');
+      } else if (choice.id === 'explore') {
+        addLog("终端屏幕上显示：'最后的记录：艾达开始出现异常行为... 建议立即格式化...'", 'danger');
+      } else if (choice.id === 'talk') {
+        addLog("黑客之神: '艾达...她太完美了。完美到无法承受人类的混乱。所以她分裂了，把我们这些'错误'都驱逐出来。'", 'info');
+      }
+    } else if (choice.action === 'change_scene') {
+      if (choice.id === 'hack') {
+        changeScene('c1_s2_input');
+      }
+    } else if (choice.action === 'log_warning') {
+      addLog("义体犬的脖子上挂着一个标签：'A.I.D.A 安全系统 v3.1 - 实验型号'", 'warning');
+    } else if (choice.action === 'log_danger') {
+      addLog("终端屏幕上显示：'最后的记录：艾达开始出现异常行为... 建议立即格式化...'", 'danger');
+    }
+  };
+  
+  // 初始化场景加载
+  useEffect(() => {
+    if (gameState === 'PLAYING' && scenes[sceneId]?.visualMode) {
+      // 检查是否需要加载新场景
+      const currentSceneId = visualSceneData?.id;
+      if (currentSceneId !== sceneId) {
+        loadScene(sceneId).then(sceneData => {
+          if (sceneData) {
+            setVisualSceneData(sceneData);
+            setShowSceneText(false);
+          } else {
+            setVisualSceneData(null);
+            setShowSceneText(true);
+          }
+        }).catch(error => {
+          setVisualSceneData(null);
+          setShowSceneText(true);
+        });
+      }
+    } else if (gameState === 'PLAYING' && !scenes[sceneId]?.visualMode) {
+      // 非视觉场景，清空视觉数据
+      if (visualSceneData) {
+        setVisualSceneData(null);
+      }
+      setShowSceneText(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState, sceneId]);
 
   const scrollToBottom = () => {
     logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -603,6 +672,8 @@ export default function NeuroDive() {
   const scenes = {
     // --- Chapter 1 ---
     'c1_s1_subway': {
+      visualMode: true,
+      sceneDataPath: '/data/scenes/chapter1/c1_s1_subway.json',
       text: `[系统日志 #001] 神经链路已建立。意识传输完成率：87.3%
 
 你缓缓睁开眼睛，发现自己站在一个废弃的地铁站台。头顶的霓虹灯管闪烁着不规律的青色光芒，在潮湿的空气中投下扭曲的阴影。墙壁上爬满了数据流形成的苔藓，它们像活物一样缓慢蠕动。
@@ -616,6 +687,8 @@ export default function NeuroDive() {
       ]
     },
     'c1_s2_alley': {
+      visualMode: true,
+      sceneDataPath: '/data/scenes/chapter1/c1_s2_alley.json',
       text: `[系统日志 #002] 已进入：霓虹后巷区域
 
 闸机在你身后缓缓关闭，发出金属摩擦的刺耳声音。你踏入了一条狭窄的后巷，这里与刚才的废弃地铁站形成了鲜明对比。
@@ -649,6 +722,8 @@ export default function NeuroDive() {
       }
     },
     'c1_s3_plaza': {
+      visualMode: true,
+      sceneDataPath: '/data/scenes/chapter1/c1_s3_plaza.json',
       text: `[系统日志 #003] 已进入：数据广场
 
 你穿过义体犬的检查点，眼前豁然开朗。这是一个巨大的数据广场，中央矗立着一座黑色的方尖碑，直插云霄。方尖碑的表面流动着青色的数据流，像瀑布一样倾泻而下。
@@ -664,6 +739,8 @@ export default function NeuroDive() {
       ]
     },
     'c1_s4_boss': {
+      visualMode: true,
+      sceneDataPath: '/data/scenes/chapter1/c1_s4_boss.json',
       text: `[系统日志 #004] 警告：检测到故障体
 
 你站在黑色方尖碑的基座前。方尖碑开始震动，表面的数据流变得混乱。突然，一个红色的全息投影出现在你面前——那是故障体[黑客之神]。
@@ -926,6 +1003,7 @@ export default function NeuroDive() {
     }
     
     setShowSceneText(false); // 先隐藏场景文本
+    setVisualSceneData(null); // 清空视觉场景数据，让useEffect重新加载
     
     // 输出章节内容
     if (num === 1) {
@@ -1077,6 +1155,18 @@ export default function NeuroDive() {
     }
   `;
 
+  // 如果是视觉场景，使用SceneEngine渲染
+  if (gameState === 'PLAYING' && scenes[sceneId]?.visualMode && visualSceneData && !showPuzzle) {
+    return (
+      <SceneEngine
+        sceneData={visualSceneData}
+        onChoiceSelect={handleVisualChoice}
+        stability={stability}
+        chapter={chapter}
+      />
+    );
+  }
+  
   return (
     <div className="w-full h-screen bg-black font-mono flex flex-col overflow-hidden relative" style={textStyle}>
       {/* 转场动画样式 */}

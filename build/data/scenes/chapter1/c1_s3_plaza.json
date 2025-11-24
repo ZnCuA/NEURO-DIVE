@@ -1,0 +1,75 @@
+{
+  "id": "c1_s3_plaza",
+  "chapter": 1,
+  "metadata": {
+    "title": "数据广场",
+    "mood": "mysterious",
+    "timeOfDay": "night"
+  },
+  "background": {
+    "type": "image",
+    "image": "/assets/scenes/data_plaza.png",
+    "overlay": {
+      "type": "scanlines",
+      "intensity": 0.4
+    },
+    "effects": [
+      {
+        "type": "dataParticles",
+        "intensity": 0.6,
+        "color": "rgba(0, 255, 255, 0.5)"
+      },
+      {
+        "type": "glow",
+        "color": "rgba(0, 255, 255, 0.3)"
+      }
+    ]
+  },
+  "characters": [],
+  "dialogue": {
+    "system": {
+      "text": "[系统日志 #003] 已进入：数据广场",
+      "type": "system"
+    },
+    "narrator": {
+      "text": "你穿过义体犬的检查点，眼前豁然开朗。这是一个巨大的数据广场，中央矗立着一座黑色的方尖碑，直插云霄。方尖碑的表面流动着青色的数据流，像瀑布一样倾泻而下。",
+      "typingSpeed": 30
+    },
+    "voice": {
+      "text": "频率校准器已就绪。请调整信号参数以激活桥梁。",
+      "typingSpeed": 25
+    }
+  },
+  "ui": {
+    "hud": {
+      "stability": 100,
+      "chapter": 1,
+      "show": true
+    },
+    "choices": [
+      {
+        "id": "calibrate",
+        "text": "[工具] 启动频率校准器",
+        "icon": "tool",
+        "action": "puzzle_wave"
+      },
+      {
+        "id": "explore",
+        "text": "[探索] 检查废弃终端",
+        "icon": "explore",
+        "action": "log_danger"
+      }
+    ]
+  },
+  "camera": {
+    "effect": "fadeIn",
+    "shake": false,
+    "zoom": 1.0
+  },
+  "transitions": {
+    "in": "fade",
+    "out": "fade",
+    "duration": 1000
+  }
+}
+

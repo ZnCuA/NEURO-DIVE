@@ -1,0 +1,100 @@
+{
+  "id": "c1_s2_alley",
+  "chapter": 1,
+  "metadata": {
+    "title": "霓虹后巷",
+    "mood": "mysterious",
+    "timeOfDay": "night"
+  },
+  "background": {
+    "type": "image",
+    "image": "/assets/scenes/neon_alley.png",
+    "overlay": {
+      "type": "scanlines",
+      "intensity": 0.2
+    },
+    "effects": [
+      {
+        "type": "neon",
+        "intensity": 0.5
+      },
+      {
+        "type": "rain",
+        "intensity": 0.3
+      }
+    ]
+  },
+  "characters": [
+    {
+      "id": "robot_dog",
+      "name": "义体犬",
+      "sprite": "/assets/characters/robot_dog.png",
+      "position": "right",
+      "scale": 0.7,
+      "animation": "fadeIn",
+      "duration": 800
+    },
+    {
+      "id": "noodle_robot",
+      "name": "面摊机器人",
+      "sprite": "/assets/characters/noodle_robot.png",
+      "position": "left",
+      "scale": 0.6,
+      "animation": "fadeIn",
+      "duration": 1000
+    }
+  ],
+  "dialogue": {
+    "system": {
+      "text": "[系统日志 #002] 已进入：霓虹后巷区域",
+      "type": "system"
+    },
+    "narrator": {
+      "text": "闸机在你身后缓缓关闭，发出金属摩擦的刺耳声音。你踏入了一条狭窄的后巷，这里与刚才的废弃地铁站形成了鲜明对比。",
+      "typingSpeed": 30
+    },
+    "character": {
+      "speaker": "义体犬",
+      "text": "身份验证中... 请提供握手协议ID。",
+      "typingSpeed": 25
+    }
+  },
+  "ui": {
+    "hud": {
+      "stability": 100,
+      "chapter": 1,
+      "show": true
+    },
+    "choices": [
+      {
+        "id": "talk_noodle",
+        "text": "[对话] 询问面摊机器人",
+        "icon": "chat",
+        "action": "log_info"
+      },
+      {
+        "id": "hack",
+        "text": "[入侵] 伪造 ID 通过",
+        "icon": "hack",
+        "action": "change_scene"
+      },
+      {
+        "id": "observe_dog",
+        "text": "[观察] 检查义体犬",
+        "icon": "eye",
+        "action": "log_warning"
+      }
+    ]
+  },
+  "camera": {
+    "effect": "fadeIn",
+    "shake": false,
+    "zoom": 1.0
+  },
+  "transitions": {
+    "in": "fade",
+    "out": "fade",
+    "duration": 1000
+  }
+}
+
