@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function DialogueBox({ dialogue, onNext, typingSpeed = 30 }) {
+export default function DialogueBox({ dialogue, onNext, typingSpeed = 30, onDialogueComplete, onShowChoices }) {
   const [displayedText, setDisplayedText] = useState('');
   const [isComplete, setIsComplete] = useState(false);
   
@@ -22,11 +22,15 @@ export default function DialogueBox({ dialogue, onNext, typingSpeed = 30 }) {
       } else {
         setIsComplete(true);
         clearInterval(timer);
+        // 当对话完成且没有下一句时，触发完成回调
+        if (!onNext && onDialogueComplete) {
+          onDialogueComplete();
+        }
       }
     }, typingSpeed);
     
     return () => clearInterval(timer);
-  }, [dialogue, typingSpeed]);
+  }, [dialogue, typingSpeed, onNext, onDialogueComplete]);
   
   if (!dialogue) return null;
   
@@ -43,7 +47,7 @@ export default function DialogueBox({ dialogue, onNext, typingSpeed = 30 }) {
     if (dialogue.type === 'narrator') {
       return {
         borderColor: '#67e8f9',
-        bgColor: 'rgba(0, 0, 0, 0.95)',
+        bgColor: 'rgba(0, 0, 0, 0)',
         textColor: '#ffffff',
         nameBgColor: 'rgba(103, 232, 249, 0.2)'
       };
@@ -58,7 +62,7 @@ export default function DialogueBox({ dialogue, onNext, typingSpeed = 30 }) {
     }
     return {
       borderColor: '#0ff',
-      bgColor: 'rgba(0, 0, 0, 0.95)',
+      bgColor: 'rgba(0, 0, 0, 0)',
       textColor: '#ffffff',
       nameBgColor: 'rgba(0, 255, 255, 0.2)'
     };
@@ -94,16 +98,23 @@ export default function DialogueBox({ dialogue, onNext, typingSpeed = 30 }) {
           {/* 对话内容 */}
           <div className="px-6 py-6">
             <div 
-              className="dialogue-text text-lg md:text-xl leading-relaxed font-mono min-h-[80px]"
-              style={{ color: style.textColor }}
+              className="dialogue-text text-lg md:text-xl leading-relaxed font-mono"
+              style={{ 
+                color: style.textColor,
+                minHeight: '80px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                transition: 'none'
+              }}
             >
-              {displayedText}
-              {!isComplete && <span className="animate-pulse ml-1">|</span>}
+              <span style={{ flex: 1, wordBreak: 'break-word' }}>{displayedText}</span>
+              {!isComplete && <span className="animate-pulse ml-1 flex-shrink-0">|</span>}
             </div>
             
-            {/* 继续提示 */}
-            {isComplete && onNext && (
-              <div className="mt-4 flex justify-end">
+            {/* 按钮容器 - 固定高度避免突然变大 */}
+            <div className="mt-4 h-10 flex justify-end items-center">
+              {/* 继续提示 */}
+              {isComplete && onNext && (
                 <button
                   onClick={onNext}
                   className="px-6 py-2 border-2 rounded hover:bg-cyan-500 hover:text-black transition-all font-bold text-sm animate-pulse"
@@ -114,18 +125,21 @@ export default function DialogueBox({ dialogue, onNext, typingSpeed = 30 }) {
                 >
                   点击继续 →
                 </button>
-              </div>
-            )}
-            {isComplete && !onNext && (
-              <div className="mt-4 flex justify-end">
-                <div 
-                  className="text-sm"
-                  style={{ color: style.textColor, opacity: 0.7 }}
+              )}
+              {/* 对话完成后的查看选项按钮 */}
+              {isComplete && !onNext && onShowChoices && (
+                <button
+                  onClick={onShowChoices}
+                  className="px-6 py-2 border-2 rounded hover:bg-cyan-500 hover:text-black transition-all font-bold text-sm animate-pulse"
+                  style={{
+                    borderColor: style.borderColor,
+                    color: style.textColor
+                  }}
                 >
-                  对话已完成
-                </div>
-              </div>
-            )}
+                  查看选项 →
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

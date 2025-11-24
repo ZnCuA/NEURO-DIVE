@@ -1,7 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
-export default function ChoiceModal({ choices = [], onSelect, onClose }) {
+export default function ChoiceModal({ choices = [], title, onSelect, onClose }) {
   if (!choices || choices.length === 0) return null;
   
   const handleChoice = (choice) => {
@@ -26,7 +26,7 @@ export default function ChoiceModal({ choices = [], onSelect, onClose }) {
         <div className="bg-black/95 border-2 border-cyan-500 rounded-lg shadow-[0_0_40px_rgba(0,255,255,0.6)] overflow-hidden">
           {/* 弹窗标题栏 */}
           <div className="px-6 py-4 border-b-2 border-cyan-500 bg-cyan-950/30 flex items-center justify-between">
-            <h3 className="text-cyan-400 font-bold text-lg font-mono">选择行动</h3>
+            <h3 className="text-cyan-400 font-bold text-lg font-mono">{title || '选择行动'}</h3>
             {onClose && (
               <button
                 onClick={onClose}

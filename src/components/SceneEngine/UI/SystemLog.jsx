@@ -6,8 +6,10 @@ export default function SystemLog({ text, visible = true }) {
   return (
     <div className="system-log fixed top-20 left-0 right-0 z-30 p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-yellow-950/30 border-l-4 border-yellow-500 pl-4 py-2 text-yellow-400 font-mono text-sm shadow-[0_0_10px_rgba(255,255,0,0.2)]">
-          {text}
+        <div className="bg-black/80 border-2 border-yellow-500 rounded-lg p-4 shadow-[0_0_20px_rgba(255,255,0,0.3)]">
+          <div className="text-yellow-400 font-mono text-sm">
+            {text}
+          </div>
         </div>
       </div>
     </div>

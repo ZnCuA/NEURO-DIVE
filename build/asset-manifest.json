@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/neuro-dive/static/css/main.1f8b2add.css",
-    "main.js": "/neuro-dive/static/js/main.41e92992.js",
+    "main.css": "/neuro-dive/static/css/main.3c7751f9.css",
+    "main.js": "/neuro-dive/static/js/main.e8e4136e.js",
     "static/js/453.10cd2bf3.chunk.js": "/neuro-dive/static/js/453.10cd2bf3.chunk.js",
     "index.html": "/neuro-dive/index.html",
-    "main.1f8b2add.css.map": "/neuro-dive/static/css/main.1f8b2add.css.map",
-    "main.41e92992.js.map": "/neuro-dive/static/js/main.41e92992.js.map",
+    "main.3c7751f9.css.map": "/neuro-dive/static/css/main.3c7751f9.css.map",
+    "main.e8e4136e.js.map": "/neuro-dive/static/js/main.e8e4136e.js.map",
     "453.10cd2bf3.chunk.js.map": "/neuro-dive/static/js/453.10cd2bf3.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.1f8b2add.css",
-    "static/js/main.41e92992.js"
+    "static/css/main.3c7751f9.css",
+    "static/js/main.e8e4136e.js"
   ]
 }

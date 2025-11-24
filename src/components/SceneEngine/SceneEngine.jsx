@@ -4,36 +4,60 @@ import Character from './Character';
 import DialogueBox from './DialogueBox';
 import HUD from './UI/HUD';
 import ChoiceModal from './UI/ChoiceModal';
+import PuzzleModal from './UI/PuzzleModal';
 import SystemLog from './UI/SystemLog';
 import { useScene } from '../../hooks/useScene';
 import { useDialogue } from '../../hooks/useDialogue';
 import { preloadSceneAssets } from '../../utils/assetPreloader';
 
-export default function SceneEngine({ sceneData, onChoiceSelect, stability, chapter }) {
+export default function SceneEngine({ sceneData, onChoiceSelect, stability, chapter, hideSystemLog = false, puzzleType = null, puzzleComponent = null, onPuzzleSolve = null, onPuzzleClose = null }) {
   const { currentScene, isTransitioning } = useScene(sceneData);
   const { currentDialogue, nextDialogue, hasNext } = useDialogue(currentScene?.dialogue);
   const [showChoices, setShowChoices] = useState(false);
+  const [visibleCharacters, setVisibleCharacters] = useState({}); // 控制角色显示
+  const [characterSpeech, setCharacterSpeech] = useState({}); // 角色对话文本
   
   // 预加载资源
   useEffect(() => {
     if (currentScene) {
       preloadSceneAssets(currentScene);
+      // 初始化：所有角色默认不显示
+      const initialVisibility = {};
+      currentScene.characters?.forEach(char => {
+        initialVisibility[char.id] = false;
+      });
+      setVisibleCharacters(initialVisibility);
+      setCharacterSpeech({});
     }
   }, [currentScene]);
   
-  // 控制选项显示时机：所有对话完成后自动弹出
+  // 处理角色对话：如果是角色对话，显示在气泡中
   useEffect(() => {
-    // 只有当没有当前对话（所有对话都完成）且有选项时，才自动弹出
-    if (!currentDialogue && !hasNext && currentScene?.ui?.choices) {
-      const timer = setTimeout(() => {
-        setShowChoices(true);
-      }, 800);
-      return () => clearTimeout(timer);
-    } else if (currentDialogue) {
+    if (currentDialogue?.type === 'character' && currentDialogue?.speaker) {
+      // 找到对应的角色
+      const character = currentScene.characters?.find(char => char.name === currentDialogue.speaker);
+      if (character) {
+        // 显示角色
+        setVisibleCharacters(prev => ({
+          ...prev,
+          [character.id]: true
+        }));
+        // 设置对话文本
+        setCharacterSpeech(prev => ({
+          ...prev,
+          [character.id]: currentDialogue.text
+        }));
+      }
+    }
+  }, [currentDialogue, currentScene]);
+  
+  // 控制选项显示时机：对话进行时关闭弹窗
+  useEffect(() => {
+    if (currentDialogue) {
       // 如果还有对话在进行，确保弹窗关闭
       setShowChoices(false);
     }
-  }, [hasNext, currentScene, currentDialogue]);
+  }, [currentDialogue]);
   
   if (!currentScene) {
     return (
@@ -63,6 +87,15 @@ export default function SceneEngine({ sceneData, onChoiceSelect, stability, chap
             key={`${char.id}-${idx}`}
             character={char}
             animation={char.animation}
+            visible={visibleCharacters[char.id] !== false}
+            speechText={characterSpeech[char.id] || null}
+            onSpeechComplete={() => {
+              setCharacterSpeech(prev => {
+                const next = { ...prev };
+                delete next[char.id];
+                return next;
+              });
+            }}
           />
         ))}
       </div>
@@ -75,40 +108,96 @@ export default function SceneEngine({ sceneData, onChoiceSelect, stability, chap
           visible={currentScene.ui?.hud?.show !== false}
         />
         
-        {/* 系统日志 */}
-        {currentScene.dialogue?.system && (
+        {/* 系统日志 - 只在没有显示选项弹窗时显示，且不在解密页面时显示 */}
+        {currentScene.dialogue?.system && !showChoices && !hideSystemLog && (
           <SystemLog text={currentScene.dialogue.system.text} />
         )}
         
-        {/* 对话框 */}
-        {currentDialogue && (
+        {/* 对话框 - 只显示非角色对话 */}
+        {currentDialogue && currentDialogue.type !== 'character' && (
           <DialogueBox
             dialogue={currentDialogue}
             onNext={hasNext ? nextDialogue : undefined}
             typingSpeed={currentDialogue.typingSpeed || 30}
+            onShowChoices={!hasNext && currentScene.ui?.choices ? () => setShowChoices(true) : undefined}
           />
         )}
         
-        {/* 对话完成后的选项按钮 */}
-        {!currentDialogue && !hasNext && currentScene.ui?.choices && !showChoices && (
+        {/* 角色对话完成后的继续按钮 - 当有角色对话气泡时显示（只在没有普通对话且没有显示选项弹窗时显示） */}
+        {!currentDialogue && !showChoices && Object.keys(characterSpeech).length > 0 && (
           <div className="fixed bottom-0 left-0 right-0 z-40 p-4 md:p-6">
             <div className="max-w-5xl mx-auto flex justify-end">
               <button
-                onClick={() => setShowChoices(true)}
-                className="px-6 py-3 border-2 border-cyan-500 bg-black/90 hover:bg-cyan-500 hover:text-black transition-all font-bold text-sm font-mono shadow-[0_0_20px_rgba(0,255,255,0.5)] hover:shadow-[0_0_30px_rgba(0,255,255,0.8)]"
+                onClick={() => {
+                  // 清除所有角色对话气泡
+                  setCharacterSpeech({});
+                  // 如果有下一句对话，继续
+                  if (hasNext) {
+                    nextDialogue();
+                  } else if (currentScene.ui?.choices) {
+                    setShowChoices(true);
+                  }
+                }}
+                className="px-6 py-2 border-2 border-cyan-500 bg-black/90 hover:bg-cyan-500 hover:text-black transition-all font-bold text-sm font-mono shadow-[0_0_20px_rgba(0,255,255,0.5)] hover:shadow-[0_0_30px_rgba(0,255,255,0.8)] animate-pulse"
               >
-                查看选项 →
+                {hasNext ? '点击继续 →' : '查看选项 →'}
               </button>
             </div>
           </div>
         )}
         
+        
         {/* 选项弹窗 */}
         {showChoices && currentScene.ui?.choices && (
           <ChoiceModal
             choices={currentScene.ui.choices}
-            onSelect={onChoiceSelect}
+            title={currentScene.metadata?.title}
+            onSelect={(choice) => {
+              // 处理角色显示：根据choice.id显示对应角色并显示对话
+              // 新角色出现时，隐藏所有其他角色
+              const newVisibility = {};
+              currentScene.characters?.forEach(char => {
+                newVisibility[char.id] = false;
+              });
+              
+              if (choice.id === 'talk_noodle') {
+                const noodleChar = currentScene.characters?.find(char => char.id === 'noodle_robot');
+                if (noodleChar) {
+                  newVisibility[noodleChar.id] = true;
+                  setVisibleCharacters(newVisibility);
+                  setCharacterSpeech({}); // 清除之前的对话
+                  setTimeout(() => {
+                    setCharacterSpeech({ [noodleChar.id]: "最近合法的ID好像都是 0xA 开头的...别告诉别人。" });
+                  }, 500);
+                }
+              } else if (choice.id === 'observe_dog') {
+                const dogChar = currentScene.characters?.find(char => char.id === 'robot_dog');
+                if (dogChar) {
+                  newVisibility[dogChar.id] = true;
+                  setVisibleCharacters(newVisibility);
+                  setCharacterSpeech({}); // 清除之前的对话
+                  setTimeout(() => {
+                    setCharacterSpeech({ [dogChar.id]: "身份验证中... 请提供握手协议ID。" });
+                  }, 500);
+                }
+              } else {
+                // 其他选择也隐藏所有角色
+                setVisibleCharacters(newVisibility);
+                setCharacterSpeech({});
+              }
+              onChoiceSelect(choice);
+            }}
             onClose={() => setShowChoices(false)}
+          />
+        )}
+        
+        {/* 解密弹窗 */}
+        {puzzleType && puzzleComponent && (
+          <PuzzleModal
+            puzzleType={puzzleType}
+            puzzleComponent={puzzleComponent}
+            onSolve={onPuzzleSolve}
+            onClose={onPuzzleClose}
           />
         )}
       </div>

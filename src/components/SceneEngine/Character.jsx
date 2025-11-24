@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SpeechBubble from './UI/SpeechBubble';
 
 const POSITION_MAP = {
   left: { left: '10%', transform: 'translateX(-50%)' },
@@ -6,17 +7,21 @@ const POSITION_MAP = {
   right: { right: '10%', transform: 'translateX(50%)' }
 };
 
-export default function Character({ character, animation = 'fadeIn' }) {
+export default function Character({ character, animation = 'fadeIn', visible = true, speechText = null, onSpeechComplete }) {
   const [isVisible, setIsVisible] = useState(false);
   const [currentSprite] = useState(character.sprite);
   
   useEffect(() => {
-    if (animation === 'fadeIn' || animation === 'glitchIn') {
+    // 只有当visible为true时才显示角色
+    if (visible && (animation === 'fadeIn' || animation === 'glitchIn')) {
       setIsVisible(true);
+    } else if (!visible) {
+      setIsVisible(false);
     }
-  }, [animation]);
+  }, [animation, visible]);
   
-  const positionStyle = POSITION_MAP[character.position] || POSITION_MAP.center;
+  // 所有角色都在左边显示
+  const positionStyle = POSITION_MAP.left;
   const duration = character.duration || 800;
   
   // 占位符渲染
@@ -75,6 +80,17 @@ export default function Character({ character, animation = 'fadeIn' }) {
         ...getAnimationStyle()
       }}
     >
+      {/* 聊天气泡 */}
+      {isVisible && speechText && (
+        <SpeechBubble
+          text={speechText}
+          speaker={character.name}
+          typingSpeed={25}
+          onComplete={onSpeechComplete}
+          keepVisible={true}
+        />
+      )}
+      
       {character.sprite === 'placeholder' ? (
         renderPlaceholder()
       ) : (

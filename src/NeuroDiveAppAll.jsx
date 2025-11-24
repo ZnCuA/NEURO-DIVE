@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Terminal, Shield, Activity, Skull, Play, RotateCcw } from 'lucide-react';
 import SceneEngine from './components/SceneEngine/SceneEngine';
+import PuzzleModal from './components/SceneEngine/UI/PuzzleModal';
+import InputModal from './components/SceneEngine/UI/InputModal';
 import { loadScene } from './utils/sceneLoader';
 
 // --- 样式常量 & 工具 ---
@@ -260,16 +262,36 @@ const BinaryPuzzle = ({ onSolve }) => {
   };
 
   return (
-    <div className="border border-green-800 p-4 bg-black/50 font-mono text-green-400">
+    <div className="border-2 border-cyan-500 bg-black/40 rounded-lg p-6 font-mono text-cyan-300 shadow-[0_0_25px_rgba(0,255,255,0.35)] space-y-4">
       <div className="mb-2">ERROR: 数据流断裂。请补全校验和。</div>
       <div className="text-xl mb-4">1011 + 0001 = <span className="border-b border-green-500 min-w-[60px] inline-block text-center">{input}</span></div>
-      <div className="grid grid-cols-2 gap-2 max-w-[200px]">
-        <button onClick={() => setInput(p => p + '0')} className="bg-green-900/30 border border-green-600 hover:bg-green-800 p-2">0</button>
-        <button onClick={() => setInput(p => p + '1')} className="bg-green-900/30 border border-green-600 hover:bg-green-800 p-2">1</button>
+      <div className="grid grid-cols-2 gap-3 max-w-[220px]">
+        <button 
+          onClick={() => setInput(p => p + '0')} 
+          className="px-4 py-3 border-2 border-cyan-500 bg-cyan-500/10 hover:bg-cyan-500 hover:text-black transition-all font-bold"
+        >
+          0
+        </button>
+        <button 
+          onClick={() => setInput(p => p + '1')} 
+          className="px-4 py-3 border-2 border-cyan-500 bg-cyan-500/10 hover:bg-cyan-500 hover:text-black transition-all font-bold"
+        >
+          1
+        </button>
       </div>
-      <div className="mt-4 flex gap-2">
-        <button onClick={() => setInput('')} className="text-xs text-red-400">[清除]</button>
-        <button onClick={check} className="text-xs text-cyan-400">[执行]</button>
+      <div className="flex justify-end gap-3">
+        <button 
+          onClick={() => setInput('')} 
+          className="px-5 py-2 border-2 border-red-500 text-red-400 hover:bg-red-500 hover:text-black transition-all text-sm font-bold"
+        >
+          清除
+        </button>
+        <button 
+          onClick={check} 
+          className="px-5 py-2 border-2 border-cyan-500 text-cyan-300 hover:bg-cyan-500 hover:text-black transition-all text-sm font-bold"
+        >
+          执行
+        </button>
       </div>
     </div>
   );
@@ -333,32 +355,32 @@ const BossOnePuzzle = ({ onSolve, onFail }) => {
   const [guess, setGuess] = useState('');
   const [feedback, setFeedback] = useState('等待输入...');
   const [attempts, setAttempts] = useState(7);
-  const targetPort = 742; // 固定的
+  const targetPort = '742';
+  const [logicOp, setLogicOp] = useState(null);
 
-  // 阶段 2 状态
-  const [logicOp, setLogicOp] = useState('AND'); // OR is correct
-  
+  const keypad = ['7','4','2','8','6','5','1','9','0'];
+
   const handleGuess = () => {
-    const num = parseInt(guess);
-    if (isNaN(num)) return;
-    
-    setAttempts(p => p - 1);
-    if (num === targetPort) {
+    if (guess.length !== 3) return;
+    if (guess === targetPort) {
       setStage(2);
       setFeedback('端口开放。逻辑层暴露。');
-    } else if (num < targetPort) {
-      setFeedback(`> ${num}: LOW (偏低)`);
     } else {
-      setFeedback(`> ${num}: HIGH (偏高)`);
+      setFeedback(`> ${guess}: ${(parseInt(guess) < parseInt(targetPort)) ? 'LOW (偏低)' : 'HIGH (偏高)'}`);
+      setAttempts(prev => prev - 1);
+      if (attempts <= 1) {
+        onFail();
+        return;
+      }
+      setGuess('');
     }
-
-    if (attempts <= 1 && num !== targetPort) onFail();
-    setGuess('');
   };
 
-  const handleLogic = () => {
-    // Input A=1, B=0. Target=1.
-    // AND(1,0)=0, OR(1,0)=1, XOR(1,0)=1. OR/XOR correct.
+  const handleLogic = (op) => {
+    setLogicOp(op);
+  };
+
+  const submitLogic = () => {
     if (logicOp === 'OR' || logicOp === 'XOR') {
       onSolve(true);
     } else {
@@ -367,58 +389,81 @@ const BossOnePuzzle = ({ onSolve, onFail }) => {
   };
 
   return (
-    <div className="border border-red-800 p-4 bg-black/80 font-mono text-red-500">
-      <div className="flex justify-between mb-2">
-        <span className="animate-pulse">⚠ 故障体：黑客之神</span>
-        <span>阶段: {stage}/2</span>
+    <div className="border-2 border-cyan-500 bg-black/40 rounded-lg p-6 font-mono text-cyan-300 shadow-[0_0_25px_rgba(0,255,255,0.35)] space-y-6 w-full max-w-xl">
+      <div className="flex justify-between items-center text-sm tracking-wide text-cyan-200">
+        <span className="font-bold">⚡ 故障体：黑客之神</span>
+        <span>阶段 {stage}/2</span>
       </div>
 
       {stage === 1 && (
-        <div>
-          <div className="text-sm mb-2 text-gray-400">破解端口以注入病毒。剩余步数: {attempts}</div>
-          <div className="bg-red-900/20 p-2 mb-2 h-20 overflow-y-auto text-sm font-bold">
+        <div className="space-y-4">
+          <div className="text-sm text-cyan-200">任务：找到正确的端口号以打开防火墙（提示：来自 0x2E6 的端口）。</div>
+          <div className="bg-black/60 border border-cyan-500/40 rounded px-4 py-3 h-20 overflow-y-auto">
             {feedback}
           </div>
-          <div className="flex gap-2">
-            <input 
-              type="number" 
-              value={guess}
-              onChange={e => setGuess(e.target.value)}
-              className="bg-black border border-red-600 text-red-500 px-2 w-full focus:outline-none"
-              placeholder="输入3位端口号"
-            />
-            <button onClick={handleGuess} className="bg-red-900 border border-red-600 px-4 hover:bg-red-700">Hack</button>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <div className="text-xs mb-2 opacity-70">当前输入</div>
+              <div className="border-2 border-cyan-500 rounded px-4 py-3 text-2xl tracking-widest text-center bg-black/60">
+                {guess || '___'}
+              </div>
+            </div>
+            <div className="text-xs text-right text-cyan-200">
+              剩余尝试：<span className="font-bold text-cyan-100">{attempts}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {keypad.map((num) => (
+              <button
+                key={num}
+                onClick={() => {
+                  if (guess.length < 3) setGuess(prev => prev + num);
+                }}
+                className="py-3 border-2 border-cyan-500 bg-cyan-500/10 hover:bg-cyan-500 hover:text-black transition-all font-bold text-xl"
+              >
+                {num}
+              </button>
+            ))}
+            <button
+              onClick={() => setGuess('')}
+              className="py-3 border-2 border-red-500 text-red-400 hover:bg-red-500 hover:text-black transition-all font-bold col-span-2"
+            >
+              清除
+            </button>
+            <button
+              onClick={handleGuess}
+              disabled={guess.length !== 3}
+              className="py-3 border-2 border-cyan-500 text-cyan-200 hover:bg-cyan-500 hover:text-black transition-all font-bold disabled:opacity-40"
+            >
+              注入
+            </button>
           </div>
         </div>
       )}
 
       {stage === 2 && (
-        <div className="text-center">
-          <div className="mb-4">修复核心逻辑门以覆盖权限</div>
-          <div className="flex items-center justify-center gap-4 text-xl my-6">
-            <div className="flex flex-col items-center">
-              <span>INPUT A (1)</span>
-              <div className="h-8 w-0.5 bg-red-500"></div>
-            </div>
-            <div className="flex flex-col items-center">
-              <span>INPUT B (0)</span>
-              <div className="h-8 w-0.5 bg-red-500"></div>
-            </div>
+        <div className="space-y-4">
+          <div className="text-sm text-cyan-200">阶段2：选择正确的逻辑门（目标：输入 1 和 0，输出必须为 1）。</div>
+          <div className="grid grid-cols-3 gap-3">
+            {['AND','OR','XOR','NAND','NOR','XNOR'].map(op => (
+              <button
+                key={op}
+                onClick={() => handleLogic(op)}
+                className={`py-3 border-2 rounded transition-all font-bold ${
+                  logicOp === op
+                    ? 'border-cyan-500 bg-cyan-500/20 text-cyan-100'
+                    : 'border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/10'
+                }`}
+              >
+                {op}
+              </button>
+            ))}
           </div>
-          
-          <div className="border-2 border-yellow-500 p-2 inline-block cursor-pointer hover:bg-yellow-900/30" onClick={() => {
-            const ops = ['AND', 'OR', 'NOT', 'XOR'];
-            setLogicOp(ops[(ops.indexOf(logicOp) + 1) % ops.length]);
-          }}>
-            [{logicOp}]
-          </div>
-          
-          <div className="flex flex-col items-center mt-4">
-            <div className="h-8 w-0.5 bg-red-500"></div>
-            <span className="text-green-400">OUTPUT (1)</span>
-          </div>
-
-          <button onClick={handleLogic} className="mt-6 w-full bg-red-900 border border-red-500 py-2 hover:bg-red-700 text-white">
+          <button
+            onClick={submitLogic}
+            disabled={!logicOp}
+            className="w-full py-3 border-2 border-cyan-500 bg-cyan-500/20 hover:bg-cyan-500 hover:text-black transition-all font-bold disabled:opacity-40"
+          >
             执行逻辑注入
           </button>
         </div>
@@ -445,14 +490,26 @@ const FilterPuzzle = ({ onSolve }) => {
   };
 
   return (
-    <div className="border border-yellow-600 p-4 bg-black/50 font-mono text-yellow-400">
-      <div className="mb-2">系统提示：门卫只识别纯绿色 (#00FF00)</div>
-      <div className="flex items-center gap-4 mb-4">
-        <div className="w-16 h-16 border border-gray-500" style={{ backgroundColor: hex }}></div>
-        <input type="color" value={hex} onChange={e => setHex(e.target.value)} className="h-10 bg-transparent" />
-        <span>当前渲染色值: {hex}</span>
+    <div className="border-2 border-cyan-500 bg-black/40 rounded-lg p-6 font-mono text-cyan-200 shadow-[0_0_25px_rgba(0,255,255,0.35)] space-y-4">
+      <div className="text-sm">系统提示：门卫只识别纯绿色 (#00FF00)。请调整渲染滤镜。</div>
+      <div className="flex items-center gap-6">
+        <div className="w-20 h-20 border-2 border-cyan-500 rounded" style={{ backgroundColor: hex }}></div>
+        <div className="flex-1">
+          <input 
+            type="color" 
+            value={hex} 
+            onChange={e => setHex(e.target.value)} 
+            className="w-full h-10 bg-transparent cursor-pointer"
+          />
+          <div className="text-xs mt-2">当前渲染色值: {hex}</div>
+        </div>
       </div>
-      <button onClick={checkColor} className="border border-yellow-500 px-4 py-1 hover:bg-yellow-900/30">应用滤镜</button>
+      <button 
+        onClick={checkColor} 
+        className="w-full py-3 border-2 border-cyan-500 bg-cyan-500/20 hover:bg-cyan-500 hover:text-black transition-all font-bold"
+      >
+        应用滤镜
+      </button>
     </div>
   );
 };
@@ -489,22 +546,23 @@ const BossTwoPuzzle = ({ onSolve, onFail }) => {
   };
 
   return (
-    <div className="border border-gray-400 p-4 bg-zinc-900 font-mono">
-      <div className="text-center mb-6">
-        <h3 className="text-xl text-gray-200 font-bold">故障体·铁皮人</h3>
-        <div className="text-red-500 mt-2 animate-pulse">"{rounds[round].boss}"</div>
+    <div className="border-2 border-cyan-500 bg-black/40 rounded-lg p-6 font-mono text-cyan-200 shadow-[0_0_25px_rgba(0,255,255,0.35)] space-y-4">
+      <div className="text-center mb-2">
+        <h3 className="text-xl text-cyan-100 font-bold">故障体 · 铁皮人</h3>
+        <div className="text-red-400 mt-2 animate-pulse">"{rounds[round].boss}"</div>
       </div>
-      <div className="grid grid-cols-1 gap-2">
+      <div className="space-y-3">
         {rounds[round].options.map((opt, idx) => (
           <button 
             key={idx}
             onClick={() => handleChoice(opt.valid)}
-            className="border border-yellow-600 text-yellow-500 py-2 hover:bg-yellow-900/20 text-left px-4"
+            className="w-full border-2 border-cyan-500 bg-cyan-500/10 hover:bg-cyan-500 hover:text-black transition-all font-bold py-3 text-left px-4"
           >
-            {'>'} 注入变量: {opt.text}
+            注入变量：{opt.text}
           </button>
         ))}
       </div>
+      <div className="text-xs text-right text-cyan-300">回合 {round + 1}/3</div>
     </div>
   );
 };
@@ -591,7 +649,7 @@ export default function NeuroDive() {
     if (choice.action.startsWith('puzzle_')) {
       const puzzleType = choice.action.replace('puzzle_', '');
       setShowPuzzle(puzzleType);
-      setVisualSceneData(null); // 隐藏视觉场景，显示谜题
+      // 不隐藏视觉场景，让解密以弹窗形式显示
     } else if (choice.action === 'log_info') {
       // 这里可以根据choice.id执行不同的日志操作
       if (choice.id === 'observe') {
@@ -1155,14 +1213,61 @@ export default function NeuroDive() {
     }
   `;
 
+  // 渲染解密组件
+  const renderPuzzleComponent = () => {
+    if (!showPuzzle) return null;
+    
+    const puzzleProps = {
+      onSolve: handlePuzzleSolve,
+      onFail: showPuzzle === 'boss1' ? () => takeDamage(25, '反击') : 
+               showPuzzle === 'boss2' ? () => takeDamage(20, '情感排斥') : undefined
+    };
+    
+    switch (showPuzzle) {
+      case 'binary':
+        return <BinaryPuzzle {...puzzleProps} />;
+      case 'wave':
+        return <WaveformPuzzle {...puzzleProps} />;
+      case 'boss1':
+        return <BossOnePuzzle {...puzzleProps} />;
+      case 'filter':
+        return <FilterPuzzle {...puzzleProps} />;
+      case 'boss2':
+        return <BossTwoPuzzle {...puzzleProps} />;
+      case 'rgb':
+        return <RGBPuzzle {...puzzleProps} />;
+      default:
+        return null;
+    }
+  };
+  
+  const renderInputComponent = () => {
+    if (!scenes[sceneId]?.inputMode) return null;
+    return (
+      <InputModal
+        placeholder={scenes[sceneId].text || "请输入"}
+        checkInput={(val) => {
+          if (scenes[sceneId].checkInput) {
+            scenes[sceneId].checkInput(val);
+          }
+        }}
+      />
+    );
+  };
+
   // 如果是视觉场景，使用SceneEngine渲染
-  if (gameState === 'PLAYING' && scenes[sceneId]?.visualMode && visualSceneData && !showPuzzle) {
+  if (gameState === 'PLAYING' && scenes[sceneId]?.visualMode && visualSceneData) {
     return (
       <SceneEngine
         sceneData={visualSceneData}
         onChoiceSelect={handleVisualChoice}
         stability={stability}
         chapter={chapter}
+        hideSystemLog={false}
+        puzzleType={showPuzzle}
+        puzzleComponent={renderPuzzleComponent()}
+        onPuzzleSolve={handlePuzzleSolve}
+        onPuzzleClose={() => setShowPuzzle(null)}
       />
     );
   }
@@ -1267,7 +1372,8 @@ export default function NeuroDive() {
             <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(to bottom, transparent, ${colors.bg}0d, transparent)` }}></div>
             
             <div className="relative z-10">
-              {logs.map((log) => (
+              {/* 解密 / 输入模式时不显示系统日志 */}
+              {!showPuzzle && !scenes[sceneId]?.inputMode && logs.map((log) => (
                 <div key={log.id} className={`
                   ${log.type === 'system' ? 'text-yellow-400 border-l-4 border-yellow-500 pl-3 py-2 mt-4 bg-yellow-950/20 shadow-[0_0_10px_rgba(255,255,0,0.2)]' : ''}
                   ${log.type === 'danger' ? 'text-red-400 bg-red-950/30 p-3 border-l-4 border-red-500 shadow-[0_0_10px_rgba(255,0,0,0.3)]' : ''}
@@ -1286,7 +1392,7 @@ export default function NeuroDive() {
               ))}
               
               {/* 当前场景文本 */}
-              {gameState === 'PLAYING' && !showPuzzle && scenes[sceneId] && showSceneText && (
+              {gameState === 'PLAYING' && !showPuzzle && !scenes[sceneId]?.inputMode && scenes[sceneId] && showSceneText && (
                 <div key={sceneId} className="mt-6 mb-4 border-l-4 pl-6 py-4 text-lg text-white bg-gradient-to-r from-black/50 to-transparent relative overflow-hidden" style={{ borderColor: colors.text, boxShadow: `0 0 20px ${theme.shadowColor}` }}>
                   <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: `${colors.text}0d` }}></div>
                   <div className="relative z-10">
@@ -1295,13 +1401,15 @@ export default function NeuroDive() {
                 </div>
               )}
 
-              {/* 谜题区域嵌入 */}
-              {showPuzzle === 'binary' && <div className="mt-4"><BinaryPuzzle onSolve={handlePuzzleSolve} /></div>}
-              {showPuzzle === 'wave' && <div className="mt-4"><WaveformPuzzle onSolve={handlePuzzleSolve} /></div>}
-              {showPuzzle === 'boss1' && <div className="mt-4"><BossOnePuzzle onSolve={handlePuzzleSolve} onFail={() => takeDamage(25, '反击')} /></div>}
-              {showPuzzle === 'filter' && <div className="mt-4"><FilterPuzzle onSolve={handlePuzzleSolve} /></div>}
-              {showPuzzle === 'boss2' && <div className="mt-4"><BossTwoPuzzle onSolve={handlePuzzleSolve} onFail={() => takeDamage(20, '情感排斥')} /></div>}
-              {showPuzzle === 'rgb' && <div className="mt-4"><RGBPuzzle onSolve={handlePuzzleSolve} /></div>}
+              {/* 谜题 / 输入弹窗 */}
+              {(showPuzzle || scenes[sceneId]?.inputMode) && (
+                <PuzzleModal
+                  puzzleType={showPuzzle || 'input'}
+                  puzzleComponent={showPuzzle ? renderPuzzleComponent() : renderInputComponent()}
+                  onSolve={showPuzzle ? handlePuzzleSolve : undefined}
+                  onClose={showPuzzle ? () => setShowPuzzle(null) : undefined}
+                />
+              )}
 
               {/* 底部占位，防止被输入栏遮挡 */}
               <div ref={logsEndRef} className="h-24" />
@@ -1333,36 +1441,8 @@ export default function NeuroDive() {
              </div>
           ) : (
             <>
-              {/* 输入模式 */}
-              {scenes[sceneId]?.inputMode && !showPuzzle ? (
-                <div className="flex gap-3 justify-center items-center p-4 rounded border" style={{ ...bgStyle, ...borderStyle, boxShadow: `0 0 15px ${theme.shadowColor}` }}>
-                  <span className="text-xl font-bold" style={{ ...textStyle, ...textShadowStyle }}>{'>'}</span>
-                  <input 
-                    type="text" 
-                    autoFocus
-                    className="flex-1 max-w-2xl bg-transparent border-b-2 focus:outline-none py-2 font-mono transition-all"
-                    style={{ 
-                      borderColor: colors.text,
-                      color: colors.light,
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = colors.border;
-                      e.target.style.boxShadow = `0 2px 10px ${theme.shadowColor}`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = colors.text;
-                      e.target.style.boxShadow = 'none';
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        scenes[sceneId].checkInput(e.target.value);
-                        e.target.value = '';
-                      }
-                    }}
-                    placeholder="等待指令..."
-                  />
-                </div>
-              ) : (
+              {/* 选项模式 */}
+              {!scenes[sceneId]?.inputMode && (
                 /* 选项模式 */
                 <div className="flex flex-wrap gap-4 justify-center">
                   {!showPuzzle && scenes[sceneId]?.options.map((opt, idx) => (
